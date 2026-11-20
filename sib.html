@@ -1,0 +1,75 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex"><meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet,noimageindex"><meta name="referrer" content="no-referrer"><title>동생네 적립</title><style>
+:root{--bg:#f7f6f3;--card:#ffffff;--ink:#1c1a17;--mute:#6e6860;--faint:#9a948b;--line:#e3e0da;
+--grey:#ebe9e4;--new:#105c62;--newbg:#e2f0f1;--hot:#b0622a;--hotbg:#fdf0de;--hot2:#b4443a;--hot2bg:#fae8e6;
+--good:#1e6e46;--warnbg:#fff4c2;--warn:#7a5a00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171614;--card:#211f1c;--ink:#f0ede8;
+--mute:#b3ada4;--faint:#857f77;--line:#34312d;--grey:#2b2926;--new:#7cc7cc;--newbg:#16302f;--hot:#e8a46e;
+--hotbg:#3a2a1b;--hot2:#ef8b80;--hot2bg:#3a1f1c;--good:#7fd1a2;--warnbg:#3d3410;--warn:#f0d56a}}
+:root[data-theme="dark"]{--bg:#171614;--card:#211f1c;--ink:#f0ede8;--mute:#b3ada4;--faint:#857f77;--line:#34312d;
+--grey:#2b2926;--new:#7cc7cc;--newbg:#16302f;--hot:#e8a46e;--hotbg:#3a2a1b;--hot2:#ef8b80;--hot2bg:#3a1f1c;
+--good:#7fd1a2;--warnbg:#3d3410;--warn:#f0d56a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:26px;margin:4px 0 2px;line-height:1.3}
+h2{font-size:19px;margin:30px 0 10px}
+.sub{color:var(--mute);font-size:14px;margin:0}
+.band{display:none;background:var(--warnbg);color:var(--warn);border-radius:12px;padding:10px 14px;margin:14px 0;font-size:15px}
+.steps{display:flex;gap:6px;margin:18px 0 6px}
+.st{flex:1;text-align:center;font-size:13px;color:var(--faint);border-top:5px solid var(--line);padding-top:6px}
+.st b{display:block;font-size:15px}
+.st.on{color:var(--new);border-color:var(--new)}
+.st.done{color:var(--mute);border-color:var(--mute)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0}
+.act{border:3px solid var(--new);background:var(--newbg)}
+.act.t1{border-color:var(--hot);background:var(--hotbg)}
+.act.t2{border-color:var(--hot2);background:var(--hot2bg)}
+.lab{font-size:15px;color:var(--mute);margin:0 0 4px}
+.big{font-size:30px;font-weight:800;line-height:1.25;margin:0}
+.act .big{color:var(--new)}
+.act.t1 .big{color:var(--hot)}
+.act.t2 .big{color:var(--hot2)}
+.when{font-size:16px;margin:8px 0 0}
+ol.do{margin:12px 0 0;padding-left:0;list-style:none;counter-reset:n}
+ol.do li{counter-increment:n;position:relative;padding:6px 0 6px 40px;font-size:18px}
+ol.do li::before{content:counter(n);position:absolute;left:0;top:6px;width:28px;height:28px;border-radius:50%;
+background:var(--new);color:var(--bg);font-weight:800;text-align:center;line-height:28px;font-size:16px}
+ol.do li small{display:block;color:var(--mute);font-size:14px}
+.note{font-size:14px;color:var(--mute);margin:10px 0 0}
+.gauge{margin:6px 0 18px}
+.gt{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.gt b{font-size:22px}
+.bar{position:relative;height:16px;background:var(--grey);border-radius:8px;margin:8px 0 4px}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:var(--mute)}
+.fill.hot{background:var(--hot2)}
+.mark{position:absolute;top:-5px;bottom:-5px;width:3px;background:var(--ink);border-radius:2px}
+.ml{position:absolute;top:22px;font-size:12px;color:var(--mute);transform:translateX(-50%);white-space:nowrap}
+.gs{font-size:14px;color:var(--mute);margin-top:22px}
+.gs.yes{color:var(--hot2);font-weight:700}
+.grid{display:grid;grid-template-columns:76px 1fr 1fr;gap:6px;font-size:14px}
+.gh{color:var(--mute);text-align:center;font-size:13px;padding:2px}
+.rh{color:var(--ink);font-weight:700;font-size:14px;align-self:center}
+.rh small{display:block;color:var(--mute);font-weight:400;font-size:12px}
+.cell{background:var(--grey);border-radius:12px;padding:10px 6px;text-align:center;min-height:74px;border:3px solid transparent}
+.cell b{display:block;font-size:15px}
+.cell.c1{background:var(--hotbg);color:var(--hot)}
+.cell.c2{background:var(--hot2bg);color:var(--hot2)}
+.cell.now{border-color:var(--ink)}
+.chip{display:table;margin:6px auto 0;font-size:11px;background:var(--ink);color:var(--bg);border-radius:8px;padding:1px 7px}
+.act.t0{border-color:var(--ink);background:var(--card)}
+.act.t0 .big{color:var(--ink)}
+.ml.l1{transform:none;right:20%;padding-right:6px}
+.ml.l2{transform:none;right:0}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:10px 0}
+summary{font-weight:700;cursor:pointer}
+details ul{padding-left:18px;margin:10px 0 2px}
+details li{margin:4px 0;font-size:15px}
+.foot{font-size:12px;color:var(--faint);margin-top:28px;line-height:1.6}
+a.pick{display:block;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:22px;margin:14px 0;
+text-decoration:none;color:var(--ink);font-size:24px;font-weight:800}
+a.pick small{display:block;font-size:15px;color:var(--mute);font-weight:400;margin-top:4px}
+</style></head><body data-built="2026-11-20T14:23:35+09:00"><main><h1>동생네 적립 · 지금 할 일</h1><p class="sub">11/19(목) 미국장 마감 기준</p><div class="band" id="stale"></div><div class="steps"><div class="st on"><b>1단계</b>QQQ 모으는 중</div><div class="st "><b>2단계</b>QLD로 바꾸는 날</div><div class="st "><b>3단계</b>QLD 모으는 중</div></div><section class="card act t0"><p class="lab">매일 하던 대로</p><p class="big">QQQ 1만원</p><p class="when">11/20(금) 밤 11시 30분 미국장이 열리면</p><p class="note">자동으로 사고 있다면 따로 할 일은 없어요.</p><p class="note">QLD로 바꾸는 날이 오면 이 칸이 초록색 «바꾸는 날» 안내로 바뀌어요.</p></section><h2>지금 시장은</h2><section class="card"><div class="gauge"><div class="gt"><span>미국 주식 10개 중 무너진 수</span><b>약 7.9개</b></div><div class="bar"><div class="fill" style="width:79.0%"></div><div class="mark" style="left:80%"></div><div class="ml l1">8개 · 1단계</div><div class="mark" style="left:90%"></div><div class="ml l2">9개 · 2단계</div></div><div class="gs">1단계 경보선(8개)까지 거의 닿았어요</div></div><div class="gauge"><div class="gt"><span>QQQ가 최고점(최근 3년)에서 빠진 폭</span><b>-15.1%</b></div><div class="bar"><div class="fill hot" style="width:50.3%"></div><div class="mark" style="left:25%"></div><div class="ml" style="left:25%">7.5%</div></div><div class="gs yes">기준(7.5%)보다 더 빠졌어요</div></div><p class="note" style="margin-top:4px">두 가지가 같이 맞는 날만 경보 날이에요. «무너졌다» = 그 주식이 최근 한 달 평균값 아래로 내려갔다는 뜻. 평소엔 10개 중 5개쯤이 무너져 있어요.</p></section><h2>매일 사는 법 · 지금(바꾸기 전)</h2><section class="card"><div class="grid"><div></div><div class="gh">QQQ 7.5%보다 덜 빠짐</div><div class="gh">QQQ 7.5% 넘게 빠짐</div><div class="rh">경보 없음<small>5개쯤 무너짐</small></div><div class="cell"><b>QQQ 1만원만</b></div><div class="cell now"><b>QQQ 1만원만</b><span class="chip">지금 여기</span></div><div class="rh">1단계 경보<small>8개 넘게</small></div><div class="cell"><b>QQQ 1만원만</b></div><div class="cell c1"><b>QQQ 1만원</b>+ QLD 3만원<br>합계 4만원</div><div class="rh">2단계 경보<small>9개 넘게</small></div><div class="cell"><b>QQQ 1만원만</b></div><div class="cell c2"><b>QQQ 1만원</b>+ QLD 4.5만원<br>합계 5.5만원</div></div><p class="note">QLD로 바꾼 뒤에는 표의 QQQ 1만원이 QLD 1만원이 돼요. 경보 날 더 사는 금액은 그대로예요.</p></section><details><summary>왜 모아둔 QQQ까지 QLD로 바꾸나</summary><ul><li>바꾸는 날 조건이 처음 맞은 날 갈아탄 경우 36번을 전부 계산했어요 (2006년부터).</li><li>1억이면 1년 뒤 보통 <b>1억 4,400만</b> (그대로 QQQ였으면 1억 2,500만)</li><li>갈아탄 쪽이 더 많았던 비율: 1년 뒤 <b>80%</b> · 3년 뒤 <b>85%</b> · 5년 뒤 <b>92%</b></li><li>해외주식 손실은 같은 해 이익하고만 계산돼서, 올해 다른 이익이 없으면 세금 손해도 득도 거의 없어요.</li></ul></details><details><summary>대신 이건 각오해야 해요</summary><ul><li>바꾼 뒤 1년 안에 더 빠지는 폭이 보통 QQQ의 2배쯤 (-15.6% vs -7.2%)</li><li>2008년 같은 해가 오면 1억이 1년 뒤 3,200만까지 줄었어요 (QQQ였으면 6,200만)</li><li>보통의 10년에도 계좌가 최고점에서 한 번은 반토막 가까이(-51%) 빠졌어요.</li><li>1년이 지난 35번 중 진 7번은 전부 긴 하락장 한가운데였어요 (2007~2008년, 2022년).</li></ul></details><p class="foot">기준: 11/19(목) 미국장 마감 값 · 갱신 11/20(금) 13:34 (평일 아침 10시에 바뀜)<br>시장 경보 = MMTW 지표(미국 주식 중 20일 평균 위 비율) 20 미만 / 10 미만 · 경보 날 더 사는 금액 3 / 4.5단위 · 1단위 = 1만원<br>숫자는 2006~2026년 실제 가격으로 계산, 세금·환율 빼고. 앞으로도 같다는 보장은 없어요.</p></main><script>
+(function(){try{var b=document.body.getAttribute('data-built');var h=(Date.now()-Date.parse(b))/36e5;
+if(h>80){var e=document.getElementById('stale');e.style.display='block';
+e.textContent='이 페이지가 '+Math.floor(h/24)+'일째 안 바뀌었어요. 집 컴퓨터가 꺼졌을 수 있으니 알려주세요.';}}catch(x){}})();
+</script></body></html>
