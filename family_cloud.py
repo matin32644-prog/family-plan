@@ -235,6 +235,8 @@ if __name__ == "__main__":
         sys.exit(0)
     if a == "--remind":
         sys.exit(remind())
+    if a == "--tgtest":
+        sys.exit(0 if send("🧪 <b>[시험]</b> 가족 감시가 깃허브 서버에서 텔레그램으로 보냈습니다. 실제 알림 아님.") else 1)
     if a in ("--done", "--undo"):
         sys.exit(mark(a == "--done"))
     sys.exit(check())

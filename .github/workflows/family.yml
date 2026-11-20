@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "check | remind | probe"
+        description: "check | remind | probe | tgtest"
         required: false
         default: "check"
 permissions:
