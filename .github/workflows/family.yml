@@ -1,0 +1,57 @@
+name: family
+# 가족 적립 감시: 아침(KST 10시쯤) 시장 값 확인·알림·페이지 갱신, 밤(개장 전) 바꾸는 날 재알림
+on:
+  schedule:
+    - cron: "7 1 * * 1-6"    # 10:07 KST 월~토
+    - cron: "5 13 * * 1-5"   # 22:05 KST (서머타임 개장 22:30 전)
+    - cron: "5 14 * * 1-5"   # 23:05 KST (표준시 개장 23:30 전)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check | remind | probe"
+        required: false
+        default: "check"
+permissions:
+  contents: write
+concurrency:
+  group: family
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: install
+        run: pip install -q requests pandas holidays "git+https://github.com/rongardF/tvdatafeed.git"
+      - name: run
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          EV_SCHED: ${{ github.event.schedule }}
+          IN_MODE: ${{ github.event.inputs.mode }}
+        run: |
+          MODE="$IN_MODE"
+          if [ -z "$MODE" ]; then
+            if [ "$EV_SCHED" = "7 1 * * 1-6" ]; then MODE=check; else MODE=remind; fi
+          fi
+          echo "mode=$MODE"
+          python family_cloud.py --$MODE
+      - name: commit
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || (git commit -q -m "auto $(date -u +%F_%H%M)" && git push -q)
+      - name: alert on failure
+        if: failure()
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python -c "import os,requests; requests.post('https://api.telegram.org/bot%s/sendMessage' % os.environ['TG_TOKEN'], json={'chat_id': os.environ['TG_CHAT'], 'text': '⚠️ 가족 감시(깃허브 액션) 실패: ' + os.environ['RUN_URL']}, timeout=20)"
