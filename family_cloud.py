@@ -166,13 +166,16 @@ def check():
     print("[check] MMTW %.2f(%s) · QQQ %.2f%% $%.2f(%s) · 전환 %s" % (mv, mday, dd, px, qday, s.get("switched")))
     rc = 0
     if not s.get("switched"):
-        if fired(mv, dd):
+        # 발송이 실패한 날이 있으면(switch_pending) 다음 날 조건이 풀려도 다시 보낸다
+        if fired(mv, dd) or s.get("switch_pending"):
             if send(switch_msg(mv, mday, dd, qday, px)):
                 _, d = session_txt(qday)
                 s.update(switched=True, switched_on=qday, households=["엄마", "동생네"],
                          remind_session=d.isoformat(), reminded=False)
+                s.pop("switch_pending", None)
                 print("[check] 전환 알림 발송 · 기록")
             else:
+                s.setdefault("switch_pending", qday)
                 print("[check] 전환 알림 발송 실패: 기록 보류, 다음 실행에 재시도")
                 rc = 1
     elif (not s.get("setup_done") and s.get("switched_on") != qday and nk.weekday() < 5

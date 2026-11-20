@@ -60,7 +60,7 @@ def status(st):
     sw, on = bool(st.get("switched")), st.get("switched_on")
     if sw and on == st["last_qqq_day"]:
         stage = 2
-    elif not sw and t >= 1:
+    elif not sw and (t >= 1 or st.get("switch_pending")):
         stage = 2
     elif sw:
         stage = 3
