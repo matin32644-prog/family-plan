@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """가족 적립 «지금 할 일» 페이지 그리기. 상태(state.json)만 읽어 index.html·mom.html·sib.html을 쓴다.
 단계: ① QQQ 모으는 중 → ② QLD로 바꾸는 날 → ③ QLD 모으는 중 (setup_done이면 진행 표시 없음)
+hold(전환 전 보류)면 ①에 머물고 경보 날 더 사는 몫도 QQQ로 쓴다.
 실행은 family_cloud.py가 부른다(깃허브 액션)."""
 import datetime as dt
 import html
@@ -58,7 +59,11 @@ def status(st):
     qday = dt.date.fromisoformat(st["last_qqq_day"])
     t = tier_of(mv, dd)
     sw, on = bool(st.get("switched")), st.get("switched_on")
-    if sw and on == st["last_qqq_day"]:
+    # hold: QLD를 아직 못 사는 동안(증권사 교육·예탁금) 바꾸는 날을 미루고 경보 날 몫도 QQQ로
+    hold = bool(st.get("hold")) and not sw
+    if hold:
+        stage = 1
+    elif sw and on == st["last_qqq_day"]:
         stage = 2
     elif not sw and (t >= 1 or st.get("switch_pending")):
         stage = 2
@@ -77,7 +82,8 @@ def status(st):
         if (qday - od).days <= 7:
             missed = next_session(od)
     return dict(mv=mv, dd=dd, tier=t, stage=stage, qday=qday, act=act, open=open_kst(act),
-                fallen=(100 - mv) / 10, missed=missed, on=on, done=done,
+                fallen=(100 - mv) / 10, missed=missed, on=on, done=done, hold=hold,
+                extra="QQQ" if hold else "QLD",
                 mday=st.get("last_mmtw_day"), check=st.get("last_check", ""))
 
 
@@ -175,7 +181,7 @@ def today_buy(S, u1, u2):
     if t == 0:
         return base + " 1만원", None
     add = u1 if t == 1 else u2
-    return "%s 1만원 + QLD %s" % (base, man(add)), "그날 합계 " + man(1 + add)
+    return "%s 1만원 + %s %s" % (base, S["extra"], man(add)), "그날 합계 " + man(1 + add)
 
 
 def stepper(S):
@@ -210,7 +216,10 @@ def action(S, u1, u2):
         extra = '<p class="note">%s · 경보가 켜진 날만 더 사요. 다음 날 꺼지면 다시 1만원만.</p>' % E(tot)
     s = ('<section class="card act%s"><p class="lab">%s</p><p class="big">%s</p>%s%s'
          % (tcls, E(lab), E(buy), when, extra))
-    if S["stage"] == 1:
+    if S["hold"]:
+        s += ('<p class="note"><b>QLD는 아직 살 수 없어서 미뤄 두었어요.</b> 증권사 교육과 예탁금 조건이 갖춰질 때까지 '
+              '매일 몫도 경보 날 더 사는 몫도 QQQ로 사요. 준비가 끝나면 이 칸이 초록색 «바꾸는 날» 안내로 바뀌어요.</p>')
+    elif S["stage"] == 1:
         s += '<p class="note">QLD로 바꾸는 날이 오면 이 칸이 초록색 «바꾸는 날» 안내로 바뀌어요.</p>'
     if S["missed"]:
         s += ('<p class="note"><b>혹시 아직 QQQ가 남아 있다면</b> %s에 바꿨어야 해요. '
@@ -268,11 +277,14 @@ def grid(S, u1, u2):
                 out.append('<div class="cell%s"><b>%s 1만원만</b>%s</div>' % (" now" if now else "", base, chip))
             else:
                 add = u1 if r == 1 else u2
-                out.append('<div class="cell c%d%s"><b>%s 1만원</b>+ QLD %s<br>합계 %s%s</div>'
-                           % (r, " now" if now else "", base, man(add), man(1 + add), chip))
+                out.append('<div class="cell c%d%s"><b>%s 1만원</b>+ %s %s<br>합계 %s%s</div>'
+                           % (r, " now" if now else "", base, S["extra"], man(add), man(1 + add), chip))
     out.append("</div>")
     if S["done"]:
         lab, nt = "QLD", "경보가 켜진 날만 더 사요. 다음 날 경보가 꺼지면 다시 QLD 1만원만."
+    elif S["hold"]:
+        lab, nt = "지금(QLD 준비 중)", ("QLD를 살 수 있게 될 때까지는 경보 날 더 사는 몫도 QQQ예요. "
+                                   "준비가 끝나면 표의 QQQ가 QLD로 바뀌어요. 더 사는 금액은 그대로예요.")
     elif S["stage"] >= 2:
         lab, nt = "QLD로 바꾼 뒤", "경보 날 더 사는 금액은 바꾸기 전과 같아요. 매일 1만원만 QQQ에서 QLD로 바뀌었어요."
     else:
@@ -329,6 +341,8 @@ def index(S, built):
     lab = {1: " · 지금 ① QQQ 모으는 중", 2: " · 지금 ② 오늘이 QLD로 바꾸는 날", 3: " · 지금 ③ QLD 모으는 중"}[S["stage"]]
     if S["done"]:
         lab = ""
+    elif S["hold"]:
+        lab += " (QLD는 준비 중)"
     body = ('<body data-built="%s"><main><h1>우리 집 적립 · 지금 할 일</h1><p class="sub">%s 미국장 마감 기준%s</p>'
             '<div class="band" id="stale"></div>'
             '<a class="pick" href="mom.html">엄마<small>매일 1만원 · 경보 날 +2만 / +3만</small></a>'
@@ -358,6 +372,9 @@ def build(st=None, out=HERE, now=None):
         if S["done"]:
             for w in ("QQQ 모으는 중", "바꾸는 날", 'class="steps"', "혹시 아직", "바꾸기 전"):
                 assert w not in doc, "끝난 뒤인데 남음: " + w
+        if S["hold"]:
+            for w in ("+ QLD", "오늘이 QLD로 바꾸는 날"):
+                assert w not in doc, "보류 중인데 남음: " + w
         with open(os.path.join(out, name), "w", encoding="utf-8", newline="\n") as f:
             f.write(doc)
     with open(os.path.join(out, "README.md"), "w", encoding="utf-8", newline="\n") as f:

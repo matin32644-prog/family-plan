@@ -5,6 +5,11 @@
     python family_cloud.py --remind    # 밤: 바꾸는 날 미국장 개장 전 한 번 더 알림
     python family_cloud.py --probe     # 시장 값만 받아서 출력(시험)
     python family_cloud.py --done | --undo   # 두 집 다 끝났다는 표시(로컬에서 쓰고 푸시)
+    python family_cloud.py --hold | --unhold # QLD를 아직 못 사는 동안 보류(로컬에서 쓰고 푸시)
+
+보류(hold): 바꾸는 날 조건이 맞아도 전환 알림을 보내지 않고 페이지는 ① QQQ 모으는 중에 머문다.
+경보 날 더 사는 몫도 QQQ로 보여 준다. 보류 중 조건이 맞은 첫 날은 hold_fired_on에 적고,
+--unhold 때 그 날이 있으면 switch_pending으로 넘겨 다음 check에서 전환 알림을 보낸다.
 
 비밀값(저장소 Settings > Secrets > Actions): TG_TOKEN, TG_CHAT. 없으면 메시지를 출력만 한다.
 바꾸는 날 = 시장 경보 값 20 미만 이면서 QQQ가 최근 3년(756거래일) 최고가보다 7.5% 넘게 빠진 날이 처음 오는 날.
@@ -165,7 +170,11 @@ def check():
              last_dd=round(dd, 2), last_qqq_day=qday)
     print("[check] MMTW %.2f(%s) · QQQ %.2f%% $%.2f(%s) · 전환 %s" % (mv, mday, dd, px, qday, s.get("switched")))
     rc = 0
-    if not s.get("switched"):
+    if not s.get("switched") and s.get("hold"):
+        if fired(mv, dd) and not s.get("hold_fired_on"):
+            s["hold_fired_on"] = qday
+        print("[check] 보류 중: 전환 알림 안 보냄 (조건 첫 날 %s)" % s.get("hold_fired_on"))
+    elif not s.get("switched"):
         # 발송이 실패한 날이 있으면(switch_pending) 다음 날 조건이 풀려도 다시 보낸다
         if fired(mv, dd) or s.get("switch_pending"):
             if send(switch_msg(mv, mday, dd, qday, px)):
@@ -229,6 +238,28 @@ def mark(done):
     return 0
 
 
+def mark_hold(on):
+    s = load()
+    if on:
+        if s.get("switched"):
+            print("이미 전환해서 보류할 게 없음")
+            return 1
+        s["hold"] = True
+        s["hold_since"] = now_kst().strftime("%Y-%m-%d %H:%M")
+    else:
+        if not s.pop("hold", None):
+            print("보류 중이 아님")
+            return 1
+        s.pop("hold_since", None)
+        f = s.pop("hold_fired_on", None)
+        if f and not s.get("switched"):
+            s.setdefault("switch_pending", f)
+            print("보류 중 조건이 맞았던 날 %s → 다음 check에서 전환 알림" % f)
+    save(s)
+    PB.build(s, HERE)
+    return 0
+
+
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     a = sys.argv[1] if len(sys.argv) > 1 else "--check"
@@ -242,4 +273,6 @@ if __name__ == "__main__":
         sys.exit(0 if send("🧪 <b>[시험]</b> 가족 감시가 깃허브 서버에서 텔레그램으로 보냈습니다. 실제 알림 아님.") else 1)
     if a in ("--done", "--undo"):
         sys.exit(mark(a == "--done"))
+    if a in ("--hold", "--unhold"):
+        sys.exit(mark_hold(a == "--hold"))
     sys.exit(check())
