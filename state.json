@@ -5,5 +5,7 @@
  "last_mmtw": 21.02,
  "last_mmtw_day": "2026-11-19",
  "last_dd": -15.09,
- "last_qqq_day": "2026-11-19"
+ "last_qqq_day": "2026-11-19",
+ "hold": true,
+ "hold_since": "2026-11-21 15:36"
 }
