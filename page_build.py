@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """가족 적립 «지금 할 일» 페이지 그리기. 상태(state.json)만 읽어 index.html·mom.html·sib.html을 쓴다.
 단계: ① QQQ 모으는 중 → ② QLD로 바꾸는 날 → ③ QLD 모으는 중 (setup_done이면 진행 표시 없음)
-hold(전환 전 보류)면 ①에 머물고 경보 날 더 사는 몫도 QQQ로 쓴다.
+hold(전환 보류)면 QLD 이야기를 통째로 뺀 QQQ 적립 페이지로 그린다: 진행 표시·바꾸는 날 안내·왜/각오 접기 없음,
+경보 날 더 사는 몫도 QQQ (2026-11-23 사용자 12893 «QLD로 바꾸는 내용은 없애줘»). build가 hold면 «QLD» 0건 assert.
 실행은 family_cloud.py가 부른다(깃허브 액션)."""
 import datetime as dt
 import html
@@ -181,12 +182,14 @@ def today_buy(S, u1, u2):
     if t == 0:
         return base + " 1만원", None
     add = u1 if t == 1 else u2
+    if S["hold"]:
+        return "QQQ " + man(1 + add), "평소 1만원 + 경보 날 %s 더" % man(add)
     return "%s 1만원 + %s %s" % (base, S["extra"], man(add)), "그날 합계 " + man(1 + add)
 
 
 def stepper(S):
     """진행 표시. «1단계 경보»와 헷갈리지 않게 «단계» 대신 ①②③. 끝났으면(done) 통째로 없앤다."""
-    if S["done"]:
+    if S["done"] or S["hold"]:
         return ""
     out = []
     for k, (a, b) in enumerate([("①", "QQQ 모으는 중"), ("②", "QLD로 바꾸는 날"), ("③", "QLD 모으는 중")], 1):
@@ -217,8 +220,7 @@ def action(S, u1, u2):
     s = ('<section class="card act%s"><p class="lab">%s</p><p class="big">%s</p>%s%s'
          % (tcls, E(lab), E(buy), when, extra))
     if S["hold"]:
-        s += ('<p class="note"><b>QLD는 아직 살 수 없어서 미뤄 두었어요.</b> 증권사 교육과 예탁금 조건이 갖춰질 때까지 '
-              '매일 몫도 경보 날 더 사는 몫도 QQQ로 사요. 준비가 끝나면 이 칸이 초록색 «바꾸는 날» 안내로 바뀌어요.</p>')
+        pass
     elif S["stage"] == 1:
         s += '<p class="note">QLD로 바꾸는 날이 오면 이 칸이 초록색 «바꾸는 날» 안내로 바뀌어요.</p>'
     if S["missed"]:
@@ -275,6 +277,10 @@ def grid(S, u1, u2):
             chip = '<span class="chip">지금 여기</span>' if now else ""
             if r == 0 or c == 0:
                 out.append('<div class="cell%s"><b>%s 1만원만</b>%s</div>' % (" now" if now else "", base, chip))
+            elif S["hold"]:
+                add = u1 if r == 1 else u2
+                out.append('<div class="cell c%d%s"><b>QQQ %s</b>1만원 + %s 더%s</div>'
+                           % (r, " now" if now else "", man(1 + add), man(add), chip))
             else:
                 add = u1 if r == 1 else u2
                 out.append('<div class="cell c%d%s"><b>%s 1만원</b>+ %s %s<br>합계 %s%s</div>'
@@ -283,8 +289,7 @@ def grid(S, u1, u2):
     if S["done"]:
         lab, nt = "QLD", "경보가 켜진 날만 더 사요. 다음 날 경보가 꺼지면 다시 QLD 1만원만."
     elif S["hold"]:
-        lab, nt = "지금(QLD 준비 중)", ("QLD를 살 수 있게 될 때까지는 경보 날 더 사는 몫도 QQQ예요. "
-                                   "준비가 끝나면 표의 QQQ가 QLD로 바뀌어요. 더 사는 금액은 그대로예요.")
+        lab, nt = "QQQ", "경보가 켜진 날만 더 사요. 다음 날 경보가 꺼지면 다시 QQQ 1만원만."
     elif S["stage"] >= 2:
         lab, nt = "QLD로 바꾼 뒤", "경보 날 더 사는 금액은 바꾸기 전과 같아요. 매일 1만원만 QQQ에서 QLD로 바뀌었어요."
     else:
@@ -293,7 +298,9 @@ def grid(S, u1, u2):
             % (lab, "".join(out), nt))
 
 
-def facts(done=False):
+def facts(done=False, hold=False):
+    if hold:
+        return ""
     risk = ('<details><summary>대신 이건 각오해야 해요</summary><ul>'
             '<li>QLD는 QQQ보다 보통 2배쯤 더 출렁여요. 1년 안에 더 빠지는 폭도 보통 2배쯤이에요.</li>'
             '<li>2008년 같은 해가 오면 1억이 1년 뒤 3,200만까지 줄었어요.</li>'
@@ -314,10 +321,11 @@ def facts(done=False):
 
 
 def foot(S, unit):
+    # hold면 왜/각오 숫자가 없으니 «숫자는 2006~» 줄도 뺀다
+    last = "" if S["hold"] else '<br>숫자는 2006~2026년 실제 가격으로 계산, 세금·환율 빼고. 앞으로도 같다는 보장은 없어요.'
     return ('<p class="foot">기준: %s 미국장 마감 값 · 갱신 %s (월~토 아침 10시쯤 바뀜)<br>'
-            '시장 경보 = MMTW 지표(미국 주식 중 20일 평균 위 비율) 20 미만 / 10 미만 · 경보 날 더 사는 금액 %s · 1단위 = 1만원<br>'
-            '숫자는 2006~2026년 실제 가격으로 계산, 세금·환율 빼고. 앞으로도 같다는 보장은 없어요.</p>'
-            % (E(md(S["qday"])), E(fmt_check(S["check"])), unit))
+            '시장 경보 = MMTW 지표(미국 주식 중 20일 평균 위 비율) 20 미만 / 10 미만 · 경보 날 더 사는 금액 %s · 1단위 = 1만원%s</p>'
+            % (E(md(S["qday"])), E(fmt_check(S["check"])), unit, last))
 
 
 def fmt_check(s):
@@ -333,16 +341,14 @@ def page(S, key, who, u1, u2, built):
     body = ('<body data-built="%s"><main><h1>%s 적립 · 지금 할 일</h1>'
             '<p class="sub">%s 미국장 마감 기준</p><div class="band" id="stale"></div>%s%s%s%s%s%s</main>%s</body></html>'
             % (built, E(who), E(md(S["qday"])), stepper(S), action(S, u1, u2), gauges(S), grid(S, u1, u2),
-               facts(S["done"]), foot(S, unit), JS))
+               facts(S["done"], S["hold"]), foot(S, unit), JS))
     return head("%s 적립" % who) + body
 
 
 def index(S, built):
     lab = {1: " · 지금 ① QQQ 모으는 중", 2: " · 지금 ② 오늘이 QLD로 바꾸는 날", 3: " · 지금 ③ QLD 모으는 중"}[S["stage"]]
-    if S["done"]:
+    if S["done"] or S["hold"]:
         lab = ""
-    elif S["hold"]:
-        lab += " (QLD는 준비 중)"
     body = ('<body data-built="%s"><main><h1>우리 집 적립 · 지금 할 일</h1><p class="sub">%s 미국장 마감 기준%s</p>'
             '<div class="band" id="stale"></div>'
             '<a class="pick" href="mom.html">엄마<small>매일 1만원 · 경보 날 +2만 / +3만</small></a>'
@@ -373,7 +379,7 @@ def build(st=None, out=HERE, now=None):
             for w in ("QQQ 모으는 중", "바꾸는 날", 'class="steps"', "혹시 아직", "바꾸기 전"):
                 assert w not in doc, "끝난 뒤인데 남음: " + w
         if S["hold"]:
-            for w in ("+ QLD", "오늘이 QLD로 바꾸는 날"):
+            for w in ("QLD", "바꾸", 'class="steps"', "각오", "혹시 아직"):
                 assert w not in doc, "보류 중인데 남음: " + w
         with open(os.path.join(out, name), "w", encoding="utf-8", newline="\n") as f:
             f.write(doc)
