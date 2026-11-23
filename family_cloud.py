@@ -7,8 +7,8 @@
     python family_cloud.py --done | --undo   # 두 집 다 끝났다는 표시(로컬에서 쓰고 푸시)
     python family_cloud.py --hold | --unhold # QLD를 아직 못 사는 동안 보류(로컬에서 쓰고 푸시)
 
-보류(hold): 바꾸는 날 조건이 맞아도 전환 알림을 보내지 않고 페이지는 ① QQQ 모으는 중에 머문다.
-경보 날 더 사는 몫도 QQQ로 보여 준다. 보류 중 조건이 맞은 첫 날은 hold_fired_on에 적고,
+보류(hold): 바꾸는 날 조건이 맞아도 전환 알림을 보내지 않고 페이지는 QLD 이야기 없는 QQQ 적립 페이지로 그린다(11/23).
+경보 날 더 사는 몫도 QQQ. 보류 중 조건이 맞은 첫 날은 hold_fired_on에 적고,
 --unhold 때 그 날이 있으면 switch_pending으로 넘겨 다음 check에서 전환 알림을 보낸다.
 
 비밀값(저장소 Settings > Secrets > Actions): TG_TOKEN, TG_CHAT. 없으면 메시지를 출력만 한다.
