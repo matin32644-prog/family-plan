@@ -1,11 +1,11 @@
 {
  "switched": false,
  "switched_on": null,
- "last_check": "2026-11-27 18:37",
- "last_mmtw": 33.76,
- "last_mmtw_day": "2026-11-25",
- "last_dd": -16.55,
- "last_qqq_day": "2026-11-25",
+ "last_check": "2026-11-28 17:51",
+ "last_mmtw": 42.66,
+ "last_mmtw_day": "2026-11-27",
+ "last_dd": -14.31,
+ "last_qqq_day": "2026-11-27",
  "hold": true,
  "hold_since": "2026-11-21 15:36",
  "hold_fired_on": "2026-11-20"
